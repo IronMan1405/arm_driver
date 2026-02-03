@@ -35,6 +35,8 @@ class ArmDriver(Node):
     def joint_callback(self, msg):
         for i, angle in enumerate(msg.position):
             ch = 5 - i
+            print(ch, angle+90)
+            self.get_logger().info(f"ch={ch} angle = {angle+90}")
             if ch >= 5:
                 break
 
