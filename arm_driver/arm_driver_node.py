@@ -1,6 +1,7 @@
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import JointState
+from trajectory_msgs.msg import JointTrajectory
 
 import board, busio
 # from adafruit_pca9685 import PCA9685
@@ -19,7 +20,8 @@ class ArmDriver(Node):
         # self.min_duty = 0x0800
         # self.max_duty = 0x1800
 
-        self.joint_states = self.create_subscription(JointState, '/arm/joint_targets', self.joint_callback, 10)
+        # self.joint_states = self.create_subscription(JointState, '/arm/joint_targets', self.joint_callback, 10)
+        self.joint_traj = self.create_subscription(JointTrajectory, '/arm_controller/joint_trajectory', self.traj_callback, 10)
 
         self.get_logger().info("Arm driver started")
 
@@ -43,6 +45,23 @@ class ArmDriver(Node):
             # duty = self.angle_to_duty(angle)
             # self.pca.channels[ch].duty_cycle = duty
             self.kit.servo[ch].angle = angle*2 + 90
+
+    def traj_callback(self, msg):
+        if not msg.points:
+            return
+
+        point = msg.points[-1]   # ← THIS is the goal
+        positions = point.positions
+
+        for i, angle_rad in enumerate(positions):
+            ch = 5 - i
+            if ch < 0:
+                break
+
+            angle_deg = angle_rad * 57.2958 + 90
+            self.get_logger().info(f"ch={ch}, angle={angle_deg:.1f}, {angle_rad}")
+            self.kit.servo[ch].angle = angle_deg
+
 
 def main():
 	rclpy.init()
