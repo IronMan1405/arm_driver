@@ -38,9 +38,10 @@ class ArmDriver(Node):
             if ch >= 5:
                 break
 
+            a = angle - 90
         # duty = self.angle_to_duty(angle)
         # self.pca.channels[ch].duty_cycle = duty
-        self.kit.servo[ch].angle = angle
+        self.kit.servo[ch].angle = a
 
 def main():
 	rclpy.init()
