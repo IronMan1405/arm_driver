@@ -36,13 +36,13 @@ class ArmDriver(Node):
         for i, angle in enumerate(msg.position):
             ch = 5 - i
             print(ch, angle+90)
-            self.get_logger().info(f"ch={ch} angle = {angle+90}")
+            self.get_logger().info(f"ch={ch} angle = {angle*2 + 90}")
             if ch < 0:
                 break
 
             # duty = self.angle_to_duty(angle)
             # self.pca.channels[ch].duty_cycle = duty
-            self.kit.servo[ch].angle = angle + 90
+            self.kit.servo[ch].angle = angle*2 + 90
 
 def main():
 	rclpy.init()
