@@ -1,7 +1,6 @@
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import JointState
-from trajectory_msgs.msg import JointTrajectory
 
 import board, busio
 # from adafruit_pca9685 import PCA9685
@@ -20,9 +19,7 @@ class ArmDriver(Node):
         # self.min_duty = 0x0800
         # self.max_duty = 0x1800
 
-        # self.joint_states = self.create_subscription(JointState, '/arm/joint_targets', self.joint_callback, 10)
-        # self.joint_traj = 
-        self.create_subscription(JointTrajectory, '/arm_controller/joint_trajectory', self.traj_callback, 10)
+        self.joint_states = self.create_subscription(JointState, '/arm/joint_targets', self.joint_callback, 10)
 
         self.get_logger().info("Arm driver started")
 
