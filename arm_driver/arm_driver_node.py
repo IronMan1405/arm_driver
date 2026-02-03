@@ -3,18 +3,21 @@ from rclpy.node import Node
 from sensor_msgs.msg import JointState
 
 import board, busio
-from adafruit_pca9685 import PCA9685
+# from adafruit_pca9685 import PCA9685
+from adafruit_servokit import ServoKit
 
 class ArmDriver(Node):
     def __init__(self):
         super().__init__("arm_driver")
 
-        i2c = busio.I2C(board.SCL, board.SDA)
-        self.pca = PCA9685(i2c)
-        self.pca.frequency = 50
+        # i2c = busio.I2C(board.SCL, board.SDA)
+        # self.pca = PCA9685(i2c)
+        # self.pca.frequency = 50
 
-        self.min_duty = 0x0800
-        self.max_duty = 0x1800
+        self.kit = ServoKit(channels = 16)
+
+        # self.min_duty = 0x0800
+        # self.max_duty = 0x1800
 
         self.joint_states = self.create_subscription(JointState, '/arm/joint_targets', self.joint_callback, 10)
 
@@ -35,8 +38,9 @@ class ArmDriver(Node):
             if ch >= 5:
                 break
 
-        duty = self.angle_to_duty(angle)
-        self.pca.channels[ch].duty_cycle = duty
+        # duty = self.angle_to_duty(angle)
+        # self.pca.channels[ch].duty_cycle = duty
+        self.kit.servo[ch].angle = angle
 
 def main():
 	rclpy.init()
