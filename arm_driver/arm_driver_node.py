@@ -37,15 +37,19 @@ class ArmDriver(Node):
         return math.degrees(angle_rad)
 
     def joint_callback(self, msg):
-#        self.get_logger().info(str(list(zip(msg.name, msg.position))))
+        # self.get_logger().info(str(list(zip(msg.name, msg.position))))
         for i, angle in enumerate(msg.position):
             ch = 5 - i
-#           print(ch, angle+90)
-#            self.get_logger().info(f"ch={ch} angle = {angle + 90}")
+            angle_deg = self.radian_to_servo_deg(angle)
+            # print(ch, angle+90)
+            # self.get_logger().info(f"ch={ch} angle = {angle + 90}")
             if ch < 0:
                 break
+            
+            if ch == 2:
+                 angle_deg = 180 - angle_deg
 
-            self.kit.servo[ch].angle = self.radian_to_servo_deg(angle) + 90
+            self.kit.servo[ch].angle = angle_deg + 90
 
 def main():
 	rclpy.init()
