@@ -2,64 +2,50 @@ import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import JointState
 
-import board, busio
-# from adafruit_pca9685 import PCA9685
+import board, busio, math
 from adafruit_servokit import ServoKit
 
 class ArmDriver(Node):
     def __init__(self):
         super().__init__("arm_driver")
 
-        # i2c = busio.I2C(board.SCL, board.SDA)
-        # self.pca = PCA9685(i2c)
-        # self.pca.frequency = 50
-
         self.kit = ServoKit(channels = 16)
 
-        # self.min_duty = 0x0800
-        # self.max_duty = 0x1800
+        self.joint_map = {
+            "joint_1": 5,
+            "joint_2": 4,
+            "joint_3": 3,
+            "joint_4": 2,
+            "joint_5": 1,
+            "joint_6": 0,
+        }
 
-        self.joint_states = self.create_subscription(JointState, '/arm/joint_targets', self.joint_callback, 10)
+        self.joint_limits = {
+            "joint_1": (0, 180),
+            "joint_2": (0, 180),
+            "joint_3": (0, 180),
+            "joint_4": (0, 180),
+            "joint_5": (0, 180),
+            "joint_6": (0, 180),
+        }
+
+        self.create_subscription(JointState, '/arm/joint_targets', self.joint_callback, 10)
 
         self.get_logger().info("Arm driver started")
 
-    def angle_to_duty(self, angle_rad):
-        angle_deg = angle_rad * 57.2958
-        angle_deg = max(-90, min(90, angle_deg))
-
-        span = self.max_duty = self.min_duty
-        duty = self.min_duty + ((angle_deg + 90) / 180) * span
-
-        return int(duty)
+    def radian_to_servo_deg(self, angle_rad):
+        return math.degrees(angle_rad)
 
     def joint_callback(self, msg):
+#        self.get_logger().info(str(list(zip(msg.name, msg.position))))
         for i, angle in enumerate(msg.position):
             ch = 5 - i
-            print(ch, angle+90)
-            self.get_logger().info(f"ch={ch} angle = {angle*2 + 90}")
+#           print(ch, angle+90)
+#            self.get_logger().info(f"ch={ch} angle = {angle + 90}")
             if ch < 0:
                 break
 
-            # duty = self.angle_to_duty(angle)
-            # self.pca.channels[ch].duty_cycle = duty
-            self.kit.servo[ch].angle = angle*2 + 90
-
-    def traj_callback(self, msg):
-        if not msg.points:
-            return
-
-        point = msg.points[-1]   # ← THIS is the goal
-        positions = point.positions
-
-        for i, angle_rad in enumerate(positions):
-            ch = 5 - i
-            if ch < 0:
-                break
-
-            angle_deg = angle_rad * 57.2958 + 90
-            self.get_logger().info(f"ch={ch}, angle={angle_deg:.1f}, {angle_rad}")
-            self.kit.servo[ch].angle = angle_deg
-
+            self.kit.servo[ch].angle = self.radian_to_servo_deg(angle) + 90
 
 def main():
 	rclpy.init()
