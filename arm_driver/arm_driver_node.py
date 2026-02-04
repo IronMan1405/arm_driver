@@ -40,7 +40,7 @@ class ArmDriver(Node):
         # self.get_logger().info(str(list(zip(msg.name, msg.position))))
         for i, angle in enumerate(msg.position):
             ch = 5 - i
-            angle_deg = self.radian_to_servo_deg(angle)
+            angle_deg = self.radian_to_servo_deg(angle) + 90
             # print(ch, angle+90)
             # self.get_logger().info(f"ch={ch} angle = {angle + 90}")
             if ch < 0:
@@ -49,7 +49,7 @@ class ArmDriver(Node):
             if ch == 2:
                  angle_deg = 180 - angle_deg
 
-            self.kit.servo[ch].angle = angle_deg + 90
+            self.kit.servo[ch].angle = angle_deg
 
 def main():
 	rclpy.init()
