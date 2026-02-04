@@ -42,11 +42,11 @@ class ArmDriver(Node):
             ch = 5 - i
             angle_deg = self.radian_to_servo_deg(angle) + 90
             # print(ch, angle+90)
-            # self.get_logger().info(f"ch={ch} angle = {angle + 90}")
+            self.get_logger().info(f"ch={ch} angle = {angle + 90}")
             if ch < 0:
                 break
             
-            if ch == 2:
+            if ch == 3:
                  angle_deg = 180 - angle_deg
 
             self.kit.servo[ch].angle = angle_deg
