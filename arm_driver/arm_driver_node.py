@@ -28,26 +28,49 @@ class ArmDriver(Node):
             "joint_5": (0, 180),
             "joint_6": (0, 180),
         }
+        
+        self.calibration = {
+            "joint_1": {"channel": 5, "offset": 90, "invert": False},
+            "joint_2": {"channel": 4, "offset": 90, "invert": False},
+            "joint_3": {"channel": 3, "offset": 90, "invert": True},
+            "joint_4": {"channel": 2, "offset": 90, "invert": False},
+            "joint_5": {"channel": 1, "offset": 90, "invert": False},
+            "joint_6": {"channel": 0, "offset": 90, "invert": False},
+        }
 
         self.create_subscription(JointState, '/arm/joint_targets', self.joint_callback, 10)
 
         self.get_logger().info("Arm driver started")
 
-    def radian_to_servo_deg(self, angle_rad):
-        return math.degrees(angle_rad)
-
     def joint_callback(self, msg):
-        # self.get_logger().info(str(list(zip(msg.name, msg.position))))
-        for i, angle in enumerate(msg.position):
-            ch = 5 - i
-            angle_deg = self.radian_to_servo_deg(angle) + 90
-            # print(ch, angle+90)
-            self.get_logger().info(f"ch={ch} angle = {angle + 90}")
-            if ch < 0:
-                break
+    #     # self.get_logger().info(str(list(zip(msg.name, msg.position))))
+    #     for i, angle in enumerate(msg.position):
+    #         ch = 5 - i
+    #         angle_deg = math.degrees(angle) + 90
+    #         # print(ch, angle+90)
+    #         self.get_logger().info(f"ch={ch} angle = {angle + 90}")
+    #         if ch < 0:
+    #             break
             
-            if ch == 3:
-                 angle_deg = 180 - angle_deg
+    #         if ch == 3:
+    #              angle_deg = 180 - angle_deg
+
+    #         self.kit.servo[ch].angle = angle_deg
+
+        for name, angle_rad in zip(msg.name, msg.position):
+            if name not in self.calibration:
+                self.get_logger().warn(f"Unknown joint: {name}")
+                continue
+
+            cfg = self.calibration[name]
+            ch = cfg['channel']
+
+            angle_deg = math.degrees(angle_rad)
+
+            if cfg['invert']:
+                angle_deg = 180 - angle_deg
+
+            angle_deg = angle_deg + cfg['offset']
 
             self.kit.servo[ch].angle = angle_deg
 
