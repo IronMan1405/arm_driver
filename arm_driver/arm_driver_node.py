@@ -30,12 +30,12 @@ class ArmDriver(Node):
         }
         
         self.calibration = {
-            "joint_1": {"channel": 5, "offset": 90, "invert": False},
-            "joint_2": {"channel": 4, "offset": 90, "invert": False},
-            "joint_3": {"channel": 3, "offset": 90, "invert": True},
-            "joint_4": {"channel": 2, "offset": 90, "invert": False},
-            "joint_5": {"channel": 1, "offset": 90, "invert": False},
-            "joint_6": {"channel": 0, "offset": 90, "invert": False},
+            "joint1": {"channel": 5, "offset": 90, "invert": False},
+            "joint2": {"channel": 4, "offset": 90, "invert": False},
+            "joint3": {"channel": 3, "offset": 90, "invert": True},
+            "joint4": {"channel": 2, "offset": 90, "invert": False},
+            "joint5": {"channel": 1, "offset": 90, "invert": False},
+            "joint6": {"channel": 0, "offset": 90, "invert": False},
         }
 
         self.create_subscription(JointState, '/arm/joint_targets', self.joint_callback, 10)
@@ -65,12 +65,12 @@ class ArmDriver(Node):
             cfg = self.calibration[name]
             ch = cfg['channel']
 
-            angle_deg = math.degrees(angle_rad)
+            angle_deg = math.degrees(angle_rad) + cfg['offset']
 
             if cfg['invert']:
                 angle_deg = 180 - angle_deg
 
-            angle_deg = angle_deg + cfg['offset']
+            # angle_deg = angle_deg + cfg['offset']
 
             self.kit.servo[ch].angle = angle_deg
 
