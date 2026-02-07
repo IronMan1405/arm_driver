@@ -12,12 +12,12 @@ class ArmDriver(Node):
         self.kit = ServoKit(channels = 16)
 
         self.joint_map = {
-            "joint_1": 5,
-            "joint_2": 4,
-            "joint_3": 3,
-            "joint_4": 2,
-            "joint_5": 1,
-            "joint_6": 0,
+            "joint1": 5,
+            "joint2": 4,
+            "joint3": 3,
+            "joint4": 2,
+            "joint5": 1,
+            "joint6": 0,
         }
 
         self.joint_limits = {
@@ -39,24 +39,13 @@ class ArmDriver(Node):
         }
 
         self.create_subscription(JointState, '/arm/joint_targets', self.joint_callback, 10)
+        
+        self.actual_state_pub = self.create_publisher(JointState, "/joint_states", 10)
 
+                    
         self.get_logger().info("Arm driver started")
 
     def joint_callback(self, msg):
-    #     # self.get_logger().info(str(list(zip(msg.name, msg.position))))
-    #     for i, angle in enumerate(msg.position):
-    #         ch = 5 - i
-    #         angle_deg = math.degrees(angle) + 90
-    #         # print(ch, angle+90)
-    #         self.get_logger().info(f"ch={ch} angle = {angle + 90}")
-    #         if ch < 0:
-    #             break
-            
-    #         if ch == 3:
-    #              angle_deg = 180 - angle_deg
-
-    #         self.kit.servo[ch].angle = angle_deg
-
         for name, angle_rad in zip(msg.name, msg.position):
             if name not in self.calibration:
                 self.get_logger().warn(f"Unknown joint: {name}")
@@ -73,6 +62,12 @@ class ArmDriver(Node):
             # angle_deg = angle_deg + cfg['offset']
 
             self.kit.servo[ch].angle = angle_deg
+
+        msg = JointState()
+        msg.header.stamp = self.get_clock().now().to_msg()
+        msg.name = list(self.joint_map.keys())
+        msg.position = [math.radians(self.kit.servo[ch].angle) for ch in range(6)]
+        self.actual_state_pub.publish(msg)
 
 def main():
 	rclpy.init()
