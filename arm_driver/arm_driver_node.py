@@ -21,12 +21,12 @@ class ArmDriver(Node):
         }
 
         self.joint_limits = {
-            "joint_1": (0, 180),
-            "joint_2": (0, 180),
-            "joint_3": (0, 180),
-            "joint_4": (0, 180),
-            "joint_5": (0, 180),
-            "joint_6": (0, 180),
+            "joint1": (0, 180),
+            "joint2": (0, 180),
+            "joint3": (0, 180),
+            "joint4": (0, 180),
+            "joint5": (0, 180),
+            "joint6": (95, 180),
         }
         
         self.calibration = {
@@ -45,6 +45,22 @@ class ArmDriver(Node):
                     
         self.get_logger().info("Arm driver started")
 
+    def enforce_joint_limits(self, joint_name, angle_deg):
+        if joint_name not in self.joint_limits:
+            return angle_deg
+
+        minLimit, maxLimit = self.joint_limits[joint_name]
+
+        clamped = max(min(angle_deg, maxLimit), minLimit)
+
+        if clamped != angle_deg:
+            self.get_logger().warn(
+                f"{joint_name} angle {angle_deg:.2f} exceeds limits"
+                f"[{minLimit}, {maxLimit}] -> clamped to {clamped:.2f}"
+            )
+
+        return clamped
+
     def joint_callback(self, msg):
         for name, angle_rad in zip(msg.name, msg.position):
             if name not in self.calibration:
@@ -60,6 +76,8 @@ class ArmDriver(Node):
                 angle_deg = 180 - angle_deg
 
             # angle_deg = angle_deg + cfg['offset']
+
+            angle_deg = self.enforce_joint_limits(name, angle_deg)
 
             self.kit.servo[ch].angle = angle_deg
 
